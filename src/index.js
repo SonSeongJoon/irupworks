@@ -10,33 +10,55 @@ import ReportPage from './page/ReportPage';
 import Login from './page/Login';
 import ProtectRoute from './component/ProtectRoute';
 import SignUp from "./page/SignUp";
-
-const routes = [
-   { path: 'news', component: NewsPage, errorElement: <NotFound /> },
-   { path: 'youtube', component: YoutubePage, errorElement: <NotFound /> },
-   { path: 'report', component: ReportPage, errorElement: <NotFound /> },
-];
+import Home from "./page/Home";
 
 const router = createBrowserRouter([
    {
       path: '/',
       element: <App />,
       errorElement: <NotFound />,
-      children: routes.map(route => ({
-         path: route.path,
-         element: (
-            <ProtectRoute>{React.createElement(route.component)}</ProtectRoute>
-         ),
-         errorElement: route.errorElement,
-      })),
+      children:[
+         { index: true, element: <Home /> },
+         {
+            path: 'news', // 기본 뉴스 페이지
+            element: (
+               <ProtectRoute>
+                  <NewsPage />
+               </ProtectRoute>
+            ),
+            children: [
+               { path: ':id', element: <NewsPage /> }, // 동적 라우트
+               { path: ':category/:keyword', element: <NewsPage /> }
+            ],
+            errorElement: <NotFound />,
+         },
+         {
+            path: 'youtube',
+            element: (
+               <ProtectRoute>
+                  <YoutubePage />
+               </ProtectRoute>
+            ),
+            errorElement: <NotFound />,
+         },
+         {
+            path: 'report',
+            element: (
+               <ProtectRoute>
+                  <ReportPage />
+               </ProtectRoute>
+            ),
+            errorElement: <NotFound />,
+         },
+      ]
    },
    {
-      path: '/login',
+      path: 'login',
       element: <Login />,
       errorElement: <NotFound />,
    },
    {
-      path: '/sign',
+      path: 'sign',
       element: <SignUp />,
       errorElement: <NotFound />,
    },
