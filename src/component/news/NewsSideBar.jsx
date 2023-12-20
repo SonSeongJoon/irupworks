@@ -1,22 +1,30 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import NewsHeader from './NewsHeader';
 import KeywordGroup from './KeywordGroup';
-import { useNavigate } from 'react-router-dom';
-import { useSelectedKeyword } from '../../context/SelectKeywordContext';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
 
 export default function NewsSidebar() {
   const navigate = useNavigate();
-  const { selectedKeyword, setSelectedKeyword } = useSelectedKeyword();
   const [keywordData, setKeywordData] = useState([]);
   const { user } = useAuthContext();
   const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+  const path = String(location.pathname);
+  const pathSegments = path.split('/');
+  const groupid = parseInt(pathSegments[2]);
+  const keywordid = parseInt(pathSegments[3]);
+  const [openedGroupId, setOpenedGroupId] = useState(null);
+
 
   useEffect(() => {
-    if (selectedKeyword.groupid) {
-      navigate(`/news/${selectedKeyword.groupid}`);
+    if (groupid) {
+      navigate(`/news/${groupid}`);
     }
-  }, [selectedKeyword, navigate]);
+    if (keywordid) {
+      navigate(`/news/${groupid}/${keywordid}`);
+    }
+  }, [groupid, keywordid, navigate]);
 
   const fetchKeywordData = useCallback(() => {
     if (!user || !user?.uid) {
@@ -64,8 +72,8 @@ export default function NewsSidebar() {
       });
   };
 
-  const handleTitleClick = (keyword) => {
-    setSelectedKeyword(keyword);
+  const toggleGroupDropdown = (id) => {
+    setOpenedGroupId(openedGroupId === id ? null : id);
   };
 
   if (isLoading) {
@@ -81,10 +89,12 @@ export default function NewsSidebar() {
             key={index}
             groupname={keyword.groupname}
             groupid={keyword.groupid}
+            keywordid={keywordid}
             uid={user.uid}
-            isSelected={keyword.groupid === selectedKeyword.groupid}
-            onClick={() => handleTitleClick(keyword)}
+            isSelected={keyword.groupid === groupid}
             onRemove={() => handleRemoveGroup(keyword.groupname)}
+            isOpen={openedGroupId === keyword.groupid}
+            onToggleDropdown={() => toggleGroupDropdown(keyword.groupid)}
           />
         ))}
       </div>

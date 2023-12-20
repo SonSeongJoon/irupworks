@@ -6,7 +6,7 @@ import { AuthContextProvider } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
 import { ModalProvider } from './context/ModalContext';
 import { ModalGroupRemoveProvider } from './context/ModalGroupRemoveContext';
-import { SelectedKeywordProvider } from './context/SelectKeywordContext';
+import {SelectedGroupProvider} from './context/SelectGroupContext';
 import { KeywordProvider } from './context/KeywordContext';
 
 function AppContent() {
@@ -41,7 +41,7 @@ export default function App() {
   return (
     <AuthContextProvider>
       <KeywordProvider>
-        <SelectedKeywordProvider>
+        <SelectedGroupProvider>
           <ModalProvider>
             <ModalGroupRemoveProvider>
               <DarkModeProvider>
@@ -49,7 +49,7 @@ export default function App() {
               </DarkModeProvider>
             </ModalGroupRemoveProvider>
           </ModalProvider>
-        </SelectedKeywordProvider>
+        </SelectedGroupProvider>
       </KeywordProvider>
     </AuthContextProvider>
   );

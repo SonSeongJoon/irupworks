@@ -4,40 +4,44 @@ import { CiFolderOn } from 'react-icons/ci';
 import { GoPlus } from 'react-icons/go';
 import { useNavigate } from 'react-router-dom';
 import { useKeywordContext } from '../../context/KeywordContext';
+import { useSelectedGroup } from '../../context/SelectGroupContext';
 
 export default function KeywordGroup({
   groupname,
   groupid,
+  keywordid,
   uid,
   isSelected,
-  onClick,
   onEdit,
   onRemove,
+  isOpen,
+  onToggleDropdown,
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
   const menuRef = useRef();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [keywords, setKeywords] = useState([]); // 키워드를 저장할 상태 변수
-  const { setKeyword } = useKeywordContext(); // Context에서 setKeyword 함수 가져오기
+  const [keywords, setKeywords] = useState([]);
+  const { setKeyword } = useKeywordContext();
+  const { setGroup } = useSelectedGroup();
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
+    onToggleDropdown(groupid);
   };
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  const handleTitleClick = (keyword) => {
-    onClick(keyword.word);
-    navigate(`/news/${groupname}`);
+
+  const handleTitleClick = () => {
+    navigate(`/news/${groupid}`);
   };
 
   const handleKeywordClick = (keyword) => {
-    setKeyword(keyword.word);
+    setKeyword(keyword);
     navigate(`/news/${groupid}/${keyword.keywordid}`);
   };
 
@@ -73,7 +77,8 @@ export default function KeywordGroup({
 
   useEffect(() => {
     fetchKeywordData();
-  }, [uid, groupname, fetchKeywordData]);
+    setGroup(groupname);
+  }, [uid, groupname, fetchKeywordData, setGroup]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -92,9 +97,9 @@ export default function KeywordGroup({
     <div className='mb-3 group' ref={menuRef}>
       <div
         className={`cursor-pointer flex py-1 rounded-lg items-center justify-between ${
-          isSelected ? 'bg-blue-50 dark:bg-slate-800 shadow-md' : ''
+          isOpen ? 'bg-blue-50 dark:bg-slate-800 shadow-md' : ''
         }`}
-        onClick={onClick}
+        onClick={toggleDropdown}
       >
         <div className='flex items-center'>
           {isDropdownOpen ? (
@@ -110,7 +115,7 @@ export default function KeywordGroup({
               onClick={toggleDropdown}
             />
           )}
-          <div className='flex' onClick={handleTitleClick}>
+          <div className='flex w-36' onClick={handleTitleClick}>
             <CiFolderOn size={24} className='mr-1' />
             <h2 className='text-md'>{groupname}</h2>
           </div>
@@ -175,14 +180,18 @@ export default function KeywordGroup({
       </div>
       <div
         className={`overflow-hidden transition-max-h ease-in-out duration-300 ${
-          isDropdownOpen ? 'max-h-[500px]' : 'max-h-0'
+          isOpen ? 'max-h-[500px]' : 'max-h-0'
         }`}
       >
         <div className='px-6 py-1'>
           {keywords.map((keyword, index) => (
             <p
               key={index}
-              className='text-sm mb-1 cursor-pointer'
+              className={`text-sm mb-1 cursor-pointer p-1 ${
+                keywordid === keyword.keywordid
+                  ? 'bg-blue-50 dark:bg-slate-800 shadow-md'
+                  : ''
+              }`}
               onClick={() => handleKeywordClick(keyword)}
             >
               #{keyword.word}

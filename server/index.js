@@ -52,23 +52,6 @@ async function run() {
       }
     });
 
-    app.get('/api/news', async (req, res) => {
-      try {
-        const keywordGroupsData = await pool.query('SELECT * FROM News.news');
-
-        if (keywordGroupsData.rows.length > 0) {
-          res.json(keywordGroupsData.rows);
-        } else {
-          res
-            .status(404)
-            .json({ message: 'No keyword groups found for this user' });
-        }
-      } catch (error) {
-        res
-          .status(500)
-          .json({ message: 'Error fetching keyword groups data', error });
-      }
-    });
 
     app.delete('/api/removeGroup/:userid/:groupName', async (req, res) => {
       try {
@@ -117,24 +100,97 @@ async function run() {
       }
     });
 
-    app.get('/api/news/:keyword', async (req, res) => {
+    app.get('/api/news/:userid/:keywordid', async (req, res) => {
       try {
-        const keyword = req.params.keyword;
+        const { userid, keywordid } = req.params;
 
-        const newsData = await pool.query(
-          'SELECT * FROM News.news WHERE title LIKE $1',
-          [`%${keyword}%`],
+        const keywordData = await pool.query(
+           'SELECT word FROM News.keyword WHERE keywordid = $1 AND userid = $2',
+           [keywordid, userid]
         );
 
-        if (newsData.rows.length > 0) {
-          res.json(newsData.rows);
+        if (keywordData.rows.length > 0) {
+          const selectWord = keywordData.rows[0].word; // word 필드 추출
+          const newsData = await pool.query(
+             'SELECT * FROM News.news WHERE title LIKE $1',
+             [`%${selectWord}%`]
+          );
+
+          if (newsData.rows.length > 0) {
+            res.json(newsData.rows);
+          } else {
+            res.json(null);
+          }
         } else {
           res.json(null);
         }
+
       } catch (error) {
         res.status(500).json({ message: 'Error fetching news data', error });
       }
     });
+
+    app.get('/api/groupNewsSearch/:userid/:Groupid', async (req, res) => {
+      const { userid, Groupid } = req.params;
+
+      try {
+        const keywordData = await pool.query(
+           'SELECT word FROM News.keyword WHERE groupid = $1 AND userid = $2',
+           [Groupid, userid]
+        );
+
+        if (keywordData.rows.length > 0) {
+          const keywords = keywordData.rows.map((row) => row.word);
+
+          const newsData = await pool.query(
+             'SELECT * FROM News.news WHERE title LIKE ANY($1)',
+             [keywords.map((keyword) => `%${keyword}%`)]
+          );
+
+          if (newsData.rows.length > 0) {
+            res.json(newsData.rows);
+          } else {
+            res.json(null);
+          }
+        } else {
+          res.status(404).json({
+            message: 'No keyword groups found for this user and GroupName',
+          });
+        }
+      } catch (error) {
+        res.status(500).json({ message: 'Error fetching keyword groups data', error });
+      }
+    });
+
+
+    app.get('/api/group/:userid/:Groupid', async (req, res) => {
+      const { userid, Groupid } = req.params;
+
+      try {
+        const keywordGroupsData = await pool.query(
+           'SELECT groupname FROM News.keyword_group WHERE userid = $1 AND groupid = $2',
+           [userid, Groupid],
+        );
+
+        if (keywordGroupsData.rows.length > 0) {
+          res.json(keywordGroupsData.rows);
+        } else {
+          res
+          .status(404)
+          .json({
+            message: 'No keyword groups found for this user and GroupName',
+          });
+        }
+      } catch (error) {
+        res
+        .status(500)
+        .json({ message: 'Error fetching keyword groups data', error });
+      }
+    });
+
+
+
+
 
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);

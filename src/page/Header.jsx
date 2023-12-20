@@ -20,7 +20,7 @@ export default function Header({toggleSidebar}) {
 
 	return (
 		<div className={`flex h-[65px] shadow-md justify-between items-center backdrop-blur flex-none transition-colors duration-500 border-b border-slate-900/10 dark:border-slate-50/[0.06] bg-white supports-backdrop-blur:bg-white/95 dark:bg-slate-900 select-none`}>
-			<button className='ml-[13px]' onClick={toggleSidebar}>
+			<button className='ml-[18px]' onClick={toggleSidebar}>
 				<FiMenu size={24} className='text-primary dark:text-slate-400'/>
 			</button>
 			{user && <AccountLogin handleLogout={handleLogout}/>}
